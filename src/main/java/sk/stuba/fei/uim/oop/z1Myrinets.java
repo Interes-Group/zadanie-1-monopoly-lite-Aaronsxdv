@@ -197,13 +197,11 @@ class KeyboardInput {
 }
 
 
-
-
 class Dice{
     Random rand = new Random();
     int roll(){
         return (rand.nextInt(5))+1;
-    };
+    }
 }
 class Player{
     public int money;
@@ -221,13 +219,6 @@ class Player{
         jail_time = 0;
         prop_num = 0;
         position = 0;
-    }
-    int loser(Player pl,int money){
-        int x = 1;
-        if(pl.money <= 0){
-            x = 0;
-        }
-        return x;
     }
 }
 class Game{
@@ -317,23 +308,28 @@ class Game{
 
 
             //turn logic start
-            if(obj.money < 0 && obj.isAlive == 1){
+            if(obj.money < 0 && obj.isAlive == 1){  //if player has no money left
                 obj.isAlive = 0;
                 System.out.println("You went bankrupt.GG for you!");
             }
-            else if(obj.isAlive == 0){
+            else if(obj.isAlive == 0){          //if player has lost
+                for(int h = 0;h<24;h++){    //check if any property belongs to the dead players.if so, make it lose the owner
+                    if((field[h].cname.equals("Property")) && ((Property) field[h]).owner == obj.number){
+                        ((Property) field[h]).owner = 0;
+                    }
+                }
                 System.out.println("Current player's game is over.Going on to the next player...");
             }
-            else if(obj.jail_time <= 0 && obj.isAlive == 1){
+            else if(obj.jail_time <= 0 && obj.isAlive == 1){    //if player is in game
                 System.out.println("Position: "+obj.position);
                 System.out.println("Money: "+obj.money);
                 System.out.println("Current jail time:"+obj.jail_time);
                 String ans = "not";
-                System.out.println("Roll the dice? : ");
-                while(!ans.equals("roll")){
+                System.out.print("Press enter to roll the dice? : ");
+                while(!ans.equals("")){
                     ans = KeyboardInput.readString();
-                    if(!ans.equals("roll")){
-                        System.out.println("Try again (\"roll\" to roll the dice) : ");
+                    if(!ans.equals("")){
+                        System.out.print("\nTry again (press enter to roll the dice) : ");
                     }
                 }
                 int x = d.roll();
@@ -358,9 +354,9 @@ class Game{
                         Resident_Sleeper(300);
                         ((Corner) field[obj.position]).invoke(obj);
                     }
-                }
+                }   //tile type switch
             }
-            else if(obj.jail_time > 0){
+            else if(obj.jail_time > 0){         //if player is in jail
                 System.out.println("A turn in jail passed!");
                 obj.jail_time --;
                 System.out.printf("Turns in jail left: %d\n",obj.jail_time);
@@ -394,9 +390,6 @@ class Game{
 class Tile{
     String name;
     String cname;
-    public String getcname(){  //get class name
-        return cname;
-    }
 
 }
 class Property extends Tile{
@@ -416,8 +409,8 @@ class Property extends Tile{
     }
     public void invoke(Player pl,Player[] pl_list){       //invoke for a certain effect
 
-        if((this.owner == -1) && (pl.money >= this.price)){
-            System.out.print("\nDo you want to buy this property for "+this.price+"$? Answer in y/n : ");
+        if((this.owner == -1) && (pl.money >= this.price)){     //if property is on sale
+            System.out.print("\nDo you want to buy this property for "+this.price+"$? Type 'y' to buy : ");
             char answer = KeyboardInput.readChar();
             if(answer == 'y'){
                 pl.money -= this.price;
@@ -428,10 +421,13 @@ class Property extends Tile{
                 System.out.println("You decided not to buy this property.");
             }
         }
-        else if(this.owner != -1){
+        else if((this.owner != -1) && (this.owner != pl.number)){                              //if property belongs to someone
             pl.money -= fee;
             pl_list[this.owner].money += fee;
-            System.out.println("Paying fee to the owner...");
+            System.out.println("Paying fee ("+fee+") to the owner ("+pl_list[this.owner].name+").");
+        }
+        else if(this.owner == pl.number){
+            System.out.println("This property is yours.");
         }
         else{
             System.out.println("Not enough money to buy this property!");
@@ -448,12 +444,11 @@ class Corner extends Tile{
                 pl.money += 100;
                 System.out.println("~On start again...~");
             }
-            case 'j' -> {
-                System.out.println("~Visiting the Jail...~");
-            }
+            case 'j' -> System.out.println("~Visiting the Jail...~");
             case 'p' -> {
                 pl.jail_time +=2;
                 System.out.println("~Aaaand its a jail =( -> Chillin at the Jail...~");
+                pl.position = 8;
             }
             case 't' -> {
                 pl.money -= 200;
@@ -489,10 +484,7 @@ class Chance extends Tile{
                 System.out.println("Your car broke.Pay $200 to repair it.");
                 pl.money -= 100;
             }
-            case 5 -> {
-                System.out.println("");
-                //smth
-            }
+            case 5 -> System.out.println("You almost died.But you didnt.");
         }
 
     }
@@ -504,7 +496,7 @@ class Chance extends Tile{
 class Main {
 
     public static void main(String[] args) {
-        Game newGame = new Game(3);
+        new Game(3);
     }
 }
 
